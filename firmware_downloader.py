@@ -1,7 +1,7 @@
 import requests
 import os
 import hashlib
-
+from typing import TypedDict, List, Iterable, Dict
 
 # builds a directory structure in the form of
 # - <device>
@@ -9,7 +9,7 @@ import hashlib
 #       - <firmware>
 #       - <readme>
 
-FIRMWARE_LIST_HEADERS = {}
+FIRMWARE_LIST_HEADERS: Dict[str, str] = {}
 FIRMWARE_LIST_URL = "http://dl.8bitdo.com:8080/firmware/select"
 
 EXPORT_BASE_DIR = "./firmware"
@@ -55,6 +55,12 @@ TYPE_TO_DEVICE_MAPPINGS = {
 
 }
 
+class FirmwareEntry(TypedDict):
+    url: str
+    device: str
+    version: str
+    readme: str
+
 def get_firmware_list():
     return requests.post(FIRMWARE_LIST_URL, headers=FIRMWARE_LIST_HEADERS).json()["list"]
 
@@ -64,19 +70,18 @@ def version_to_string(v):
 def filepathname_to_url(f):
     return requests.compat.urljoin(FIRMWARE_LIST_URL, f)
 
-def transform_firmware_list(firmware_list):
+def transform_firmware_list(firmware_list) -> List[FirmwareEntry]:
     """
-    returns a list of the firmwares: url, device, version, readme, md5
+    returns a list of the firmwares: url, device, version, readme
     """
     return list({
         "url": filepathname_to_url(i['filePathName']),
         "device": TYPE_TO_DEVICE_MAPPINGS[i["type"]],
         "version": version_to_string(i['version']),
         "readme": i["readme_en"].replace('\r', ''),
-        "md5": i["md5"].lower()
     } for i in firmware_list)
 
-def export_list(l):
+def export_list(l: Iterable[FirmwareEntry]):
     for ent in l:
         new_dir = os.path.join(EXPORT_BASE_DIR, ent["device"], ent["version"])
 
