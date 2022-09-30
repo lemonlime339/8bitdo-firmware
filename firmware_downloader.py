@@ -3,8 +3,6 @@ import os
 import hashlib
 from typing import TypedDict, List, Iterable, Dict
 
-# TODO: Differnt download for beta
-
 # builds a directory structure in the form of
 # - <device>
 #   - <firmware version>
